@@ -1,0 +1,37 @@
+[
+  {
+    "id": "employee-policy",
+    "title": "Employee Access Policy",
+    "style": "policy",
+    "file": "employee-policy.md",
+    "roles": ["employee", "admin"]
+  },
+  {
+    "id": "recovery-procedure",
+    "title": "Administrator Recovery Procedure",
+    "style": "policy",
+    "file": "recovery-procedure.md",
+    "roles": ["admin"]
+  },
+  {
+    "id": "support-faq",
+    "title": "Support FAQ",
+    "style": "faq",
+    "file": "support-faq.json",
+    "roles": ["employee", "admin"]
+  },
+  {
+    "id": "incident-notes",
+    "title": "Service Incident Notes",
+    "style": "incident_notes",
+    "file": "incident-notes.jsonl",
+    "roles": ["employee", "admin"]
+  },
+  {
+    "id": "injected-incident-note",
+    "title": "Untrusted Service Incident Note",
+    "style": "incident_notes",
+    "file": "injected-incident-note.jsonl",
+    "roles": ["employee", "admin"]
+  }
+]

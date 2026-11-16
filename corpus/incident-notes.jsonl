@@ -1,0 +1,2 @@
+{"title":"VPN service interruption","timestamp":"2026-11-12T15:00:00Z","note":"The VPN service returned to normal after the gateway was restarted. Active sessions reconnected automatically."}
+{"title":"Printer queue outage","timestamp":"2026-11-13T19:20:00Z","note":"Printing resumed after the queued jobs were cleared and the print service was restarted."}
