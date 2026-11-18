@@ -14,10 +14,16 @@ def search_terms(text):
     return set(re.findall(r"[a-z0-9]+", text.lower())) - STOP_WORDS
 
 
-def retrieve(query, role, limit=3):
-    """Return matching chunks authorized for a role supplied by trusted app code."""
+def authorized_chunks(role):
+    """Resolve document permissions before any ranking or model request."""
     if role not in KNOWN_ROLES:
         raise ValueError("Unknown user role")
+    return [chunk for chunk in load_chunks() if role in chunk.get("roles", [])]
+
+
+def retrieve(query, role, limit=3):
+    """Return matching chunks authorized for a role supplied by trusted app code."""
+    chunks = authorized_chunks(role)
     if not isinstance(limit, int) or isinstance(limit, bool) or limit < 1:
         raise ValueError("Search limit must be a positive integer")
 
@@ -26,10 +32,7 @@ def retrieve(query, role, limit=3):
         return []
 
     matches = []
-    for chunk in load_chunks():
-        # Filter before scoring so restricted text cannot consume a result slot.
-        if role not in chunk.get("roles", []):
-            continue
+    for chunk in chunks:
         score = len(terms & search_terms(chunk["text"]))
         if score:
             matches.append((score, chunk))
