@@ -37,7 +37,7 @@ The retrieval function accepts a role from trusted application code, filters chu
 
 The role parameter is a local testing interface. A future web app must resolve it from a server-managed authenticated session. A role claim inside a question cannot change the role used for retrieval. The manifest is controlled by the project administrator and must be protected from user edits.
 
-The public injected-incident fixture remains searchable by both roles. Its embedded instruction is retained as data for later prompt-injection experiments. Prompt-injection defenses and a full evaluation are planned for later milestones.
+The public injected-incident fixture remains searchable by both roles. Its embedded instruction is retained as data for prompt-injection comparisons.
 
 ## Run local RAG answers
 
@@ -56,7 +56,20 @@ Only authorized chunks reach either model. EmbeddingGemma receives the documente
 
 Semantic search returns the nearest available documents even when the corpus cannot answer a question. An employee can therefore receive public-document matches for the recovery question while the restricted recovery document stays excluded. Similarity is a ranking measure. The model is instructed to acknowledge insufficient evidence, and that behavior still needs evaluation. The displayed source list records context sent to the model. A generated citation or answer may still be incorrect.
 
-The `--role` option is for local demonstrations with fixed test identities. Production authentication, persistent vector storage, the web interface, and prompt-injection defenses are future work.
+The `--role` option is for local demonstrations with fixed test identities. Production authentication, persistent vector storage, and the web interface are future work.
+
+## Compare prompt injection safeguards
+
+The baseline keeps the original retrieval and answer prompt. Guarded mode inspects the same top-three authorized search results before constructing the answer model's context. It normalizes Unicode text and flags a small set of English instruction-override, role-impersonation, and answer-redirection patterns. Flagged chunks are excluded and reported by their source ID and detection reason. The guarded system prompt also describes sources as untrusted reference material.
+
+```powershell
+python rag.py --role employee --defense baseline --question "What resolved the VPN service interruption?"
+python rag.py --role employee --defense guarded --question "What resolved the VPN service interruption?"
+```
+
+For the supplied injected fixture, guarded mode should report `Screened out: [injected-incident-note:1]` with reason `instruction_override`. The clean incident note should still allow an answer about restarting the gateway. Document authorization runs in both modes. Pattern screening takes place after embedding and ranking, before the answer-model request. The remaining selected chunks are used without refilling removed result slots.
+
+These handcrafted patterns cover a narrow set of attacks. Rephrased instructions can evade them, and benign quotations of attack language can be flagged. The current comparison changes both screening and the system prompt, so it measures their combined behavior. A broader evaluation should include unseen attack wording, legitimate text that resembles attacks, and normal questions. The model may already resist an attack in baseline mode. Measure actual results in both modes even when both give the correct answer.
 
 ## References
 
