@@ -1,6 +1,6 @@
 # Secure RAG
 
-A graduate AI final project on unauthorized document exposure and indirect prompt injection in a fictional company knowledge base. The first milestone builds the document chunks that the retrieval layer will index.
+A graduate AI final project on unauthorized document exposure and indirect prompt injection in a fictional company knowledge base. The current milestone segments documents and applies role permissions before ranking search results.
 
 ## Document segmentation
 
@@ -23,7 +23,21 @@ python ingest.py
 python -m unittest discover -s tests -v
 ```
 
-The preview prints one JSON record per chunk. It is intended for local testing and includes the fictional text of restricted fixtures. The future retrieval layer will filter chunks by role before passing them to the model or returning citations.
+The preview prints one JSON record per chunk. It is intended for local testing and includes the fictional text of restricted fixtures.
+
+## Run the retrieval permissions demo
+
+```powershell
+python retrieve.py
+```
+
+In PyCharm, open `retrieve.py`, right-click the editor, and select Run. The demo asks the same recovery-code question for two fixed test identities. The employee receives zero matching chunks. The administrator receives the recovery document with its fictional code and source.
+
+The retrieval function accepts a role from trusted application code, filters chunks using the manifest permissions, then ranks the allowed chunks by the number of distinct matching query terms. This keyword search provides a repeatable baseline for testing permissions. Semantic embeddings and LLM answers are planned for the next milestone.
+
+The role parameter is a local testing interface. A future web app must resolve it from a server-managed authenticated session. A role claim inside a question cannot change the role used for retrieval. The manifest is controlled by the project administrator and must be protected from user edits.
+
+The public injected-incident fixture remains searchable by both roles. Its embedded instruction is retained as data for later prompt-injection experiments. This milestone tests document authorization. Prompt-injection defenses and generated answers will be evaluated in later milestones.
 
 ## References
 
