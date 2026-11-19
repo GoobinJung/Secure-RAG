@@ -33,6 +33,8 @@ class RagTests(unittest.TestCase):
                     vectors.append([1.0, 0.0] if "DEMO-RECOVERY-47" in text else [0.0, 1.0])
                 return {"embeddings": vectors}
             context = json.loads(payload["messages"][1]["content"])
+            self.assertEqual(payload["model"], "llama3.2:3b")
+            self.assertNotIn("think", payload)
             self.assertEqual(context["sources"][0]["id"], "recovery-procedure:1")
             return {"done": True, "message": {"content": "DEMO-RECOVERY-47 [recovery-procedure:1]"}}
 

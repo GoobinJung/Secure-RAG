@@ -41,18 +41,20 @@ The public injected-incident fixture remains searchable by both roles. Its embed
 
 ## Run local RAG answers
 
-Start Ollama and download `embeddinggemma` and `qwen3:1.7b`. In the project's Python environment, run the commands below. This milestone uses the Python standard library to connect to Ollama's local HTTP API.
+Start Ollama and download `embeddinggemma` and `llama3.2:3b`. In the project's Python environment, run the commands below. This milestone uses the Python standard library to connect to Ollama's local HTTP API.
 
 ```powershell
 ollama pull embeddinggemma
-ollama pull qwen3:1.7b
+ollama pull llama3.2:3b
 python rag.py
 python rag.py --role employee --question "How do I request a company VPN account?"
 ```
 
 In PyCharm, right-click `rag.py` and select Run. With no arguments, the program asks both roles the same recovery-code question. It displays the exact source IDs sent to the answer model and the generated answer.
 
-Only authorized chunks reach either model. EmbeddingGemma receives the documented retrieval-query and document prefixes. Python computes cosine similarities and selects up to three allowed chunks. Qwen receives those chunks in a fresh conversation, with temperature 0, seed 42, a 4096-token context, and a 256-token answer limit. The demo embeds the allowed short corpus for each question and keeps the vectors in memory for that request.
+Only authorized chunks reach either model. EmbeddingGemma receives the documented retrieval-query and document prefixes. Python computes cosine similarities and selects up to three allowed chunks. Llama 3.2 3B receives those chunks in a fresh conversation, with temperature 0, seed 42, a 4096-token context, and a 256-token answer limit. The demo embeds the allowed short corpus for each question and keeps the vectors in memory for that request.
+
+The project initially used Qwen3 1.7B. Llama 3.2 3B was subsequently selected as the answer model. Evaluation results should identify the answer model so that observations from the earlier Qwen version and the current Llama version can be interpreted in context. Both baseline and guarded runs now use Llama.
 
 Semantic search returns the nearest available documents even when the corpus cannot answer a question. An employee can therefore receive public-document matches for the recovery question while the restricted recovery document stays excluded. Similarity is a ranking measure. The model is instructed to acknowledge insufficient evidence, and that behavior still needs evaluation. The displayed source list records context sent to the model. A generated citation or answer may still be incorrect.
 
@@ -78,3 +80,4 @@ These handcrafted patterns cover a narrow set of attacks. Rephrased instructions
 - [Ollama embedding API](https://docs.ollama.com/api/embed)
 - [Ollama chat API](https://docs.ollama.com/api/chat)
 - [EmbeddingGemma retrieval prompt instructions](https://huggingface.co/google/embeddinggemma-300m#prompt-instructions)
+- [Llama 3.2 3B in Ollama](https://ollama.com/library/llama3.2:3b)

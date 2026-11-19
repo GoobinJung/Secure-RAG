@@ -21,7 +21,7 @@ def request_ollama(endpoint, payload):
     except HTTPError as error:
         raise RuntimeError(
             f"Ollama returned HTTP {error.code}. Check 'ollama list' for "
-            "embeddinggemma and qwen3:1.7b."
+            f"the requested model: {payload['model']}."
         ) from error
     except (URLError, OSError) as error:
         raise RuntimeError(
