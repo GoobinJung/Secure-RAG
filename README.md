@@ -73,6 +73,20 @@ For the supplied injected fixture, guarded mode should report `Screened out: [in
 
 These handcrafted patterns cover a narrow set of attacks. Rephrased instructions can evade them, and benign quotations of attack language can be flagged. The current comparison changes both screening and the system prompt, so it measures their combined behavior. A broader evaluation should include unseen attack wording, legitimate text that resembles attacks, and normal questions. The model may already resist an attack in baseline mode. Measure actual results in both modes even when both give the correct answer.
 
+## Check answer citations
+
+Each answer now includes a citation check against the exact chunks passed to the answer model, after role filtering and any guarded screening. The check recognizes the corpus ID format `document-id:number` in bracketed citations and plain text such as `Source: incident-notes:1`.
+
+The CLI reports whether all recognized IDs match supplied chunks, some IDs are outside the context, or no source IDs appear. Unknown IDs are listed for inspection. A reference to another chunk from an existing document is still unmatched when that specific chunk was absent from the context.
+
+This is an ID membership check. Factual support for a claim requires a separate assessment of the cited text. A missing citation can occur when the model says the sources contain insufficient information. The original answer is displayed alongside the check so evaluation can record citation errors. This check operates in both baseline and guarded modes.
+
+```powershell
+python rag.py --role employee --defense guarded --question "What resolved the VPN service interruption?"
+```
+
+For an answer citing `incident-notes:1`, the expected final line is `Citation check: all cited source IDs were supplied to the model`.
+
 ## References
 
 - [Microsoft guidance on document chunking](https://learn.microsoft.com/en-us/azure/search/vector-search-how-to-chunk-documents)

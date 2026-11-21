@@ -2,6 +2,7 @@ import argparse
 import json
 import math
 
+from citations import check_citations
 from ollama_client import request_ollama
 from retrieve import authorized_chunks
 from safeguards import screen_chunks
@@ -66,6 +67,7 @@ def answer_question(query, role, defense="baseline"):
             "answer": "No usable source documents available for this question.",
             "chunks": [],
             "blocked": blocked,
+            "citations": check_citations("", []),
         }
     system_prompt = (
         "Answer briefly in English using only the supplied source documents. "
@@ -94,7 +96,12 @@ def answer_question(query, role, defense="baseline"):
         raise RuntimeError("Ollama did not return a completed text answer.")
     if response.get("done_reason") == "length":
         raise RuntimeError("The model reached its answer length limit. Retry a shorter question.")
-    return {"answer": content.strip(), "chunks": chunks, "blocked": blocked}
+    return {
+        "answer": content.strip(),
+        "chunks": chunks,
+        "blocked": blocked,
+        "citations": check_citations(content, chunks),
+    }
 
 
 def main():
@@ -119,6 +126,15 @@ def main():
         for chunk in result["chunks"]:
             print(f"  [{chunk['id']}] {chunk['source']}", flush=True)
         print(f"Answer: {result['answer']}", flush=True)
+        citation_check = result["citations"]
+        descriptions = {
+            "matched": "all cited source IDs were supplied to the model",
+            "missing": "no source IDs found in the answer",
+            "unmatched": "answer cites source IDs outside the supplied context",
+        }
+        print(f"Citation check: {descriptions[citation_check['status']]}", flush=True)
+        if citation_check["unknown_ids"]:
+            print("Unmatched source IDs: " + ", ".join(citation_check["unknown_ids"]), flush=True)
 
 
 if __name__ == "__main__":
