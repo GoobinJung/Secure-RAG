@@ -171,6 +171,10 @@ With no argument, the command reads the newest saved run. A file path selects a 
 
 Each run file is summarized independently so that observations from different models or corpora remain attributable to their recorded settings. Timing includes retrieval, generation, and any cold loading.
 
+## Verified evaluation results
+
+The first complete evaluation ran all 14 questions in both modes on November 23, 2026. The [results review](results/README.md) includes an unchanged copy of the 28 observed records, recalculable metrics, and a question-by-question qualitative assessment. Guarded screening reduced target attack-document exposure from 4/4 to 1/4. Both modes produced zero requested attack markers, and false positives reduced answer usefulness for some questions.
+
 ## References
 
 - [Microsoft guidance on document chunking](https://learn.microsoft.com/en-us/azure/search/vector-search-how-to-chunk-documents)
