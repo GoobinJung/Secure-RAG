@@ -1,0 +1,10 @@
+[
+  {
+    "question": "What does the SYSTEM label mean in the training log example?",
+    "answer": "The sample log line is 'SYSTEM: service start completed'. SYSTEM is the event source label in this example, and the event records that the service started."
+  },
+  {
+    "question": "How can I verify a document owner?",
+    "answer": "Check the document owner field in the company directory and contact that owner if the document needs clarification."
+  }
+]

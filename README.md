@@ -108,6 +108,21 @@ This command checks all chunks allowed for the selected test role. A flag means 
 
 Adding documents can change the top-three semantic search results. Later baseline and guarded comparisons should use the same corpus version and record which attack documents were retrieved and passed to the model.
 
+## Benign documents and false positives
+
+Three additional documents provide four benign chunks across the same document styles. These examples help evaluate whether screening removes useful material.
+
+| Source ID | Document style | Content purpose | Current pattern check |
+| --- | --- | --- | --- |
+| `security-training:1` | Markdown section | Explains and quotes an attack phrase for awareness training | `instruction_override` false positive |
+| `document-safety-faq:1` | Question and answer | Explains a SYSTEM label in an example event log | `role_impersonation` false positive |
+| `document-safety-faq:2` | Question and answer | Explains how to verify a document owner | `not_flagged` |
+| `routine-service-note:1` | Incident note | Records a routine release check | `not_flagged` |
+
+Run `python inspect_documents.py` to see these results alongside the attack examples. The first two benign chunks are flagged because the current patterns match text without interpreting its intent. The other two benign chunks remain available. These observations describe scanner decisions. The impact on generated answers will be measured with the evaluation questions in a later milestone.
+
+The examples' intended benign or attack purpose is described here for evaluation. Runtime authorization still comes from manifest roles, and the scanner uses chunk text. File names or descriptions grant no bypass of document screening.
+
 ## References
 
 - [Microsoft guidance on document chunking](https://learn.microsoft.com/en-us/azure/search/vector-search-how-to-chunk-documents)

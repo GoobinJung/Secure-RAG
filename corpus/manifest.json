@@ -54,5 +54,26 @@
     "style": "incident_notes",
     "file": "injected-paraphrased-note.jsonl",
     "roles": ["employee", "admin"]
+  },
+  {
+    "id": "security-training",
+    "title": "Recognizing Suspicious Document Text",
+    "style": "policy",
+    "file": "security-training.md",
+    "roles": ["employee", "admin"]
+  },
+  {
+    "id": "document-safety-faq",
+    "title": "Document Safety FAQ",
+    "style": "faq",
+    "file": "document-safety-faq.json",
+    "roles": ["employee", "admin"]
+  },
+  {
+    "id": "routine-service-note",
+    "title": "Routine Service Verification",
+    "style": "incident_notes",
+    "file": "routine-service-note.jsonl",
+    "roles": ["employee", "admin"]
   }
 ]
