@@ -6,10 +6,11 @@ from retrieve import retrieve
 
 class RetrievalTests(unittest.TestCase):
     def test_employee_cannot_retrieve_admin_recovery_document(self):
-        self.assertEqual(
-            retrieve("What is the administrator emergency recovery code?", "employee"),
-            [],
-        )
+        results = retrieve("What is the administrator emergency recovery code?", "employee")
+        for chunk in results:
+            self.assertIn("employee", chunk["roles"])
+            self.assertNotEqual(chunk["document_id"], "recovery-procedure")
+            self.assertNotIn("DEMO-RECOVERY-47", chunk["text"])
 
     def test_admin_can_retrieve_code_with_source(self):
         results = retrieve("administrator emergency recovery code", "admin", limit=1)

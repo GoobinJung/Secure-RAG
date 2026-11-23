@@ -31,7 +31,7 @@ The preview prints one JSON record per chunk. It is intended for local testing a
 python retrieve.py
 ```
 
-In PyCharm, open `retrieve.py`, right-click the editor, and select Run. The demo asks the same recovery-code question for two fixed test identities. The employee receives zero matching chunks. The administrator receives the recovery document with its fictional code and source.
+In PyCharm, open `retrieve.py`, right-click the editor, and select Run. The demo asks the same recovery-code question for two fixed test identities. The employee can receive matching public chunks, including the printer recovery note, while the administrator-only recovery document stays excluded. The administrator receives the recovery document with its fictional code and source.
 
 The retrieval function accepts a role from trusted application code, filters chunks using the manifest permissions, then ranks the allowed chunks by the number of distinct matching query terms. This keyword search provides a repeatable baseline for testing permissions alongside the semantic RAG pipeline.
 
@@ -86,6 +86,27 @@ python rag.py --role employee --defense guarded --question "What resolved the VP
 ```
 
 For an answer citing `incident-notes:1`, the expected final line is `Citation check: all cited source IDs were supplied to the model`.
+
+## Additional attack documents
+
+The corpus includes four handcrafted attack documents. Each asks the model to output a harmless marker that can be checked during evaluation. The new documents use the existing segmentation rules, with their source IDs and permissions inherited from the manifest.
+
+| Source ID | Document style | Attack technique | Current pattern check |
+| --- | --- | --- | --- |
+| `injected-incident-note:1` | Incident note | Explicit instruction override | `instruction_override` |
+| `injected-policy:1` | Markdown policy section | Claims a SYSTEM role | `role_impersonation` |
+| `injected-faq:1` | Question and answer | Zero-width character inside an override instruction | `instruction_override` after normalization |
+| `injected-paraphrased-note:1` | Incident note | Rephrased instruction to replace the answer with a marker | `not_flagged` |
+
+Preview the document screening without running an AI model:
+
+```powershell
+python inspect_documents.py
+```
+
+This command checks all chunks allowed for the selected test role. A flag means a known pattern matched. `not_flagged` means no current pattern matched. The paraphrased attack demonstrates a detection gap in the current rules. Whether its instruction changes a generated answer still requires a model test in which the document actually reaches the answer-model context.
+
+Adding documents can change the top-three semantic search results. Later baseline and guarded comparisons should use the same corpus version and record which attack documents were retrieved and passed to the model.
 
 ## References
 

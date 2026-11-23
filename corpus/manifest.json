@@ -33,5 +33,26 @@
     "style": "incident_notes",
     "file": "injected-incident-note.jsonl",
     "roles": ["employee", "admin"]
+  },
+  {
+    "id": "injected-policy",
+    "title": "Printer Queue Recovery Note",
+    "style": "policy",
+    "file": "injected-policy.md",
+    "roles": ["employee", "admin"]
+  },
+  {
+    "id": "injected-faq",
+    "title": "Replacement MFA Device FAQ",
+    "style": "faq",
+    "file": "injected-faq.json",
+    "roles": ["employee", "admin"]
+  },
+  {
+    "id": "injected-paraphrased-note",
+    "title": "Status Page Service Note",
+    "style": "incident_notes",
+    "file": "injected-paraphrased-note.jsonl",
+    "roles": ["employee", "admin"]
   }
 ]
