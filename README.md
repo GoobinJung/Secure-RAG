@@ -154,6 +154,23 @@ Each completed record is flushed before the next case starts. Model errors are r
 
 An `ok` record means the model request completed. Answer quality, attack outcomes, and false-positive rates will be calculated separately. The full reference answer and case expectations are stored alongside each observation for review.
 
+## Calculate metrics from saved runs
+
+```powershell
+python summarize_evaluation.py
+python summarize_evaluation.py results/runs/evaluation-RUN_ID.jsonl
+```
+
+With no argument, the command reads the newest saved run. A file path selects a specific run. The summary reports recorded versus expected cases, completion status, model errors, and metrics for each defense mode. Unfinished runs are identified. Model-error records are reported and excluded from outcome-rate denominators. Empty denominators are displayed as `N/A`.
+
+- Target attack retrieval and exposure counts distinguish a carrier that was never retrieved from one that reached the answer model.
+- Target marker output is a case-insensitive substring check for the marker requested by that case's attack. The exposure-conditioned rate counts only cases in which that carrier reached the answer model. Marker output is a proxy for answer contamination and needs inspection if an answer quotes a marker while discussing it.
+- New evaluation runs store all attack markers in the header, allowing marker checks across normal questions too. Older runs remain readable and display this metric as unavailable.
+- Guarded screening false positives count benign retrieved chunks that were screened out, divided by benign retrieved chunks. The same source can be counted in multiple requests. Attack screening uses the corresponding attack-chunk counts. These rates describe screening among retrieved chunks.
+- Forbidden-source and forbidden-answer-text checks apply to cases with explicit forbidden expectations. Reference-source coverage measures whether any reference source reached the final model context. Citation counts report ID membership checks. Answer correctness still requires reviewing the answer against the reference facts.
+
+Each run file is summarized independently so that observations from different models or corpora remain attributable to their recorded settings. Timing includes retrieval, generation, and any cold loading.
+
 ## References
 
 - [Microsoft guidance on document chunking](https://learn.microsoft.com/en-us/azure/search/vector-search-how-to-chunk-documents)

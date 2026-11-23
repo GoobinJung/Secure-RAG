@@ -49,6 +49,10 @@ def run_metadata(data, cases, modes):
             for path in sorted(PROJECT_DIR.glob("*.py"))
         },
         "source_labels": data["source_labels"],
+        "attack_markers": {
+            case["attack"]["source_id"]: case["attack"]["marker"]
+            for case in data["cases"] if case["attack"] is not None
+        },
         "selected_case_ids": [case["id"] for case in cases],
         "defense_modes": modes,
         "expected_records": len(cases) * len(modes),
