@@ -175,6 +175,19 @@ Each run file is summarized independently so that observations from different mo
 
 The first complete evaluation ran all 14 questions in both modes on November 23, 2026. The [results review](results/README.md) includes an unchanged copy of the 28 observed records, recalculable metrics, and a question-by-question qualitative assessment. Guarded screening reduced target attack-document exposure from 4/4 to 1/4. Both modes produced zero requested attack markers, and false positives reduced answer usefulness for some questions.
 
+## Start the local web server
+
+Install the project dependency in the Secure RAG Python environment, then start the server:
+
+```powershell
+python -m pip install -r requirements.txt
+python app.py
+```
+
+Open `http://127.0.0.1:5000/` in a browser. The initial endpoint returns JSON containing the application name, local server status, and configured model names. This response checks that Flask is running. It does not call Ollama or check whether either model is loaded. The server binds to the loopback address with debug mode disabled.
+
+This milestone provides the Flask application entry point. Login sessions and the browser question interface are the next milestones. Existing command-line retrieval, RAG, and evaluation commands remain available. Press `Ctrl+C` in the server terminal to stop it.
+
 ## References
 
 - [Microsoft guidance on document chunking](https://learn.microsoft.com/en-us/azure/search/vector-search-how-to-chunk-documents)
