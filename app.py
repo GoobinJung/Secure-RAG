@@ -1,13 +1,100 @@
-from flask import Flask
+import secrets
+from datetime import timedelta
+
+from flask import Flask, abort, g, redirect, render_template, request, session, url_for
+from werkzeug.security import check_password_hash, generate_password_hash
 
 from rag import ANSWER_MODEL, EMBEDDING_MODEL
 
 
 app = Flask(__name__)
+app.config.update(
+    SECRET_KEY=secrets.token_hex(32),
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE="Lax",
+    PERMANENT_SESSION_LIFETIME=timedelta(minutes=30),
+    MAX_CONTENT_LENGTH=16 * 1024,
+)
+
+# Public, fictional accounts for the loopback-only class demonstration.
+DEMO_USERS = {
+    "employee": {"role": "employee", "password_hash": generate_password_hash("employee-demo")},
+    "admin": {"role": "admin", "password_hash": generate_password_hash("admin-demo")},
+}
+
+
+@app.before_request
+def load_account():
+    username = session.get("username")
+    user = DEMO_USERS.get(username)
+    g.account = None
+    if user is not None:
+        g.account = {"username": username, "role": user["role"]}
+
+
+@app.before_request
+def check_form_token():
+    if request.method == "POST":
+        expected = session.get("csrf_token")
+        supplied = request.form.get("csrf_token", "")
+        if not expected or not secrets.compare_digest(expected.encode("utf-8"), supplied.encode("utf-8")):
+            abort(400, description="The form expired. Reload the page and try again.")
+
+
+def csrf_token():
+    if "csrf_token" not in session:
+        session["csrf_token"] = secrets.token_urlsafe(32)
+    return session["csrf_token"]
+
+
+@app.context_processor
+def template_context():
+    return {"account": g.account, "csrf_token": csrf_token}
+
+
+@app.after_request
+def response_headers(response):
+    response.headers["Cache-Control"] = "no-store"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["Content-Security-Policy"] = (
+        "default-src 'self'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"
+    )
+    return response
 
 
 @app.get("/")
 def index():
+    if g.account is None:
+        return redirect(url_for("login"))
+    return render_template("index.html", answer_model=ANSWER_MODEL, embedding_model=EMBEDDING_MODEL)
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        username = request.form.get("username", "").strip()
+        password = request.form.get("password", "")
+        user = DEMO_USERS.get(username)
+        if user is None or not check_password_hash(user["password_hash"], password):
+            return render_template("login.html", error="Incorrect username or password."), 401
+        session.clear()
+        session["username"] = username
+        session.permanent = True
+        csrf_token()
+        return redirect(url_for("index"))
+    if g.account is not None:
+        return redirect(url_for("index"))
+    return render_template("login.html", error=None)
+
+
+@app.post("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for("login"))
+
+
+@app.get("/health")
+def health():
     return {
         "application": "Secure RAG",
         "server_status": "running",

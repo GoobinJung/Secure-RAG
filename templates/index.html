@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="panel account-panel" aria-labelledby="account-heading">
+  <h1 id="account-heading">Your account</h1>
+  <dl class="account-details">
+    <div><dt>Username</dt><dd>{{ account.username }}</dd></div>
+    <div><dt>Role</dt><dd id="account-role">{{ account.role }}</dd></div>
+    <div><dt>Answer model</dt><dd>{{ answer_model }}</dd></div>
+    <div><dt>Search model</dt><dd>{{ embedding_model }}</dd></div>
+  </dl>
+</section>
+{% endblock %}

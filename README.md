@@ -184,9 +184,20 @@ python -m pip install -r requirements.txt
 python app.py
 ```
 
-Open `http://127.0.0.1:5000/` in a browser. The initial endpoint returns JSON containing the application name, local server status, and configured model names. This response checks that Flask is running. It does not call Ollama or check whether either model is loaded. The server binds to the loopback address with debug mode disabled.
+Open `http://127.0.0.1:5000/` in a browser. Signed-out visitors are redirected to the login page. The JSON server-status response is available at `/health` and reports configured model names without calling Ollama. The server binds to the loopback address with debug mode disabled. Press `Ctrl+C` in the server terminal to stop it.
 
-This milestone provides the Flask application entry point. Login sessions and the browser question interface are the next milestones. Existing command-line retrieval, RAG, and evaluation commands remain available. Press `Ctrl+C` in the server terminal to stop it.
+## Sign in with a local demo account
+
+| Username | Password | Server-assigned role |
+| --- | --- | --- |
+| `employee` | `employee-demo` | `employee` |
+| `admin` | `admin-demo` | `admin` |
+
+These fictional, public credentials support the loopback-only class demonstration. Login validates a password hash and creates a signed session containing the username. On every request, the server looks up that username in its own account mapping to determine the role. Submitted role fields and query parameters have no authority to change it.
+
+Login and logout forms use session-bound CSRF tokens. Successful login clears the previous session and rotates the token. Cookies use HttpOnly and SameSite=Lax, and sessions have a 30-minute lifetime. A new signing key is generated when the server starts, so restarting the server requires signing in again.
+
+After login, the account page displays the server-resolved username, role, and configured models. The question interface is the next milestone. Existing command-line retrieval, RAG, and evaluation commands remain available.
 
 ## References
 

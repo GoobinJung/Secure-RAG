@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Sign in · Secure RAG{% endblock %}
+{% block content %}
+<section class="panel login-panel" aria-labelledby="login-heading">
+  <h1 id="login-heading">Sign in</h1>
+  <p class="description">Use your local demo account to continue.</p>
+  {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+  <form class="login-form" method="post" action="{{ url_for('login') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label for="username">Username</label>
+    <input id="username" name="username" autocomplete="username" maxlength="64" required autofocus>
+    <label for="password">Password</label>
+    <input id="password" name="password" type="password" autocomplete="current-password" maxlength="128" required>
+    <button class="button primary" type="submit">Sign in</button>
+  </form>
+</section>
+{% endblock %}
