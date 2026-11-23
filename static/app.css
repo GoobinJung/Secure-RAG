@@ -29,7 +29,7 @@ h1 { font-size: 30px; letter-spacing: -0.6px; margin: 0 0 12px; }
 .description { color: #596579; line-height: 1.6; margin: 0 0 28px; }
 .login-form { display: flex; flex-direction: column; gap: 10px; }
 label { font-size: 14px; font-weight: 600; }
-input {
+input, textarea {
   width: 100%;
   min-height: 46px;
   padding: 10px 12px;
@@ -38,7 +38,7 @@ input {
   border-radius: 8px;
   font: inherit;
 }
-input:focus-visible, .button:focus-visible, .brand:focus-visible {
+input:focus-visible, textarea:focus-visible, .button:focus-visible, .brand:focus-visible {
   outline: 3px solid #8eb5ff;
   outline-offset: 3px;
 }
@@ -67,6 +67,24 @@ input:focus-visible, .button:focus-visible, .brand:focus-visible {
 }
 dt { color: #596579; }
 dd { margin: 0; overflow-wrap: anywhere; font-weight: 600; }
+
+.workspace { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 24px; align-items: start; }
+.workspace-account { padding: 28px; }
+.workspace-account h2 { font-size: 20px; margin: 0; }
+.workspace-account .account-details > div { grid-template-columns: 1fr; gap: 6px; }
+.workspace-account dd { font-size: 14px; }
+.question-form { display: flex; flex-direction: column; gap: 10px; }
+textarea { resize: vertical; min-height: 140px; line-height: 1.6; }
+.question-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 14px; }
+#question-status { color: #596579; font-size: 14px; line-height: 1.5; flex: 1; }
+.button:disabled { opacity: 0.65; cursor: wait; }
+.answer-section { border-top: 1px solid #e1e6ee; margin-top: 30px; padding-top: 24px; }
+.answer-section h2 { font-size: 21px; margin: 0 0 14px; }
+.answer-text { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.75; }
+
+@media (max-width: 800px) {
+  .workspace { grid-template-columns: 1fr; }
+}
 
 @media (max-width: 480px) {
   .page { margin-top: 36px; }

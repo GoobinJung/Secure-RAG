@@ -197,7 +197,15 @@ These fictional, public credentials support the loopback-only class demonstratio
 
 Login and logout forms use session-bound CSRF tokens. Successful login clears the previous session and rotates the token. Cookies use HttpOnly and SameSite=Lax, and sessions have a 30-minute lifetime. A new signing key is generated when the server starts, so restarting the server requires signing in again.
 
-After login, the account page displays the server-resolved username, role, and configured models. The question interface is the next milestone. Existing command-line retrieval, RAG, and evaluation commands remain available.
+After login, the page displays the server-resolved username, role, and configured models. Existing command-line retrieval, RAG, and evaluation commands remain available.
+
+## Ask questions in the browser
+
+Start Ollama and `python app.py`, sign in, and enter a question on the home page. Questions can contain up to 2,000 characters. The browser displays a pending status while the request runs, followed by the answer. The initial web question workflow uses guarded mode. The server takes the role from the authenticated account mapping, and ignores submitted role and defense fields.
+
+Try `How do I request a company VPN account?` as the employee. The answer should describe the support portal and manager approval. The recovery-code question can then be tried with each account to compare access boundaries. Each submission starts a fresh model conversation. Questions and answers stay in that response and are excluded from the session cookie.
+
+The form includes a session-bound CSRF token. Questions are validated on the server, model failures are displayed with the entered question preserved, and model output is rendered as escaped text. Source-detail and document-screening panels are the next milestones.
 
 ## References
 

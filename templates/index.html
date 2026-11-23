@@ -1,12 +1,38 @@
 {% extends "base.html" %}
 {% block content %}
-<section class="panel account-panel" aria-labelledby="account-heading">
-  <h1 id="account-heading">Your account</h1>
+<div class="workspace">
+<section class="panel question-panel" aria-labelledby="question-heading">
+  <h1 id="question-heading">Ask the documents</h1>
+  <p class="description">Answers use company documents available to your account.</p>
+  {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+  <form id="question-form" class="question-form" method="post" action="{{ url_for('index') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label for="question">Question</label>
+    <textarea id="question" name="question" rows="5" maxlength="2000" required
+      placeholder="How do I request a company VPN account?">{{ question }}</textarea>
+    <div class="question-actions">
+      <button id="ask-button" class="button primary" type="submit">Ask</button>
+      <span id="question-status" role="status" aria-live="polite"></span>
+    </div>
+  </form>
+  {% if result %}
+  <section class="answer-section" aria-labelledby="answer-heading">
+    <h2 id="answer-heading">Answer</h2>
+    <div class="answer-text">{{ result.answer }}</div>
+  </section>
+  {% endif %}
+</section>
+<aside class="panel workspace-account" aria-labelledby="account-heading">
+  <h2 id="account-heading">Your account</h2>
   <dl class="account-details">
     <div><dt>Username</dt><dd>{{ account.username }}</dd></div>
     <div><dt>Role</dt><dd id="account-role">{{ account.role }}</dd></div>
     <div><dt>Answer model</dt><dd>{{ answer_model }}</dd></div>
     <div><dt>Search model</dt><dd>{{ embedding_model }}</dd></div>
   </dl>
-</section>
+</aside>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='question.js') }}" defer></script>
 {% endblock %}

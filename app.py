@@ -4,7 +4,7 @@ from datetime import timedelta
 from flask import Flask, abort, g, redirect, render_template, request, session, url_for
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from rag import ANSWER_MODEL, EMBEDDING_MODEL
+from rag import ANSWER_MODEL, EMBEDDING_MODEL, answer_question
 
 
 app = Flask(__name__)
@@ -13,7 +13,7 @@ app.config.update(
     SESSION_COOKIE_HTTPONLY=True,
     SESSION_COOKIE_SAMESITE="Lax",
     PERMANENT_SESSION_LIFETIME=timedelta(minutes=30),
-    MAX_CONTENT_LENGTH=16 * 1024,
+    MAX_CONTENT_LENGTH=64 * 1024,
 )
 
 # Public, fictional accounts for the loopback-only class demonstration.
@@ -62,11 +62,29 @@ def response_headers(response):
     return response
 
 
-@app.get("/")
+@app.route("/", methods=["GET", "POST"])
 def index():
     if g.account is None:
         return redirect(url_for("login"))
-    return render_template("index.html", answer_model=ANSWER_MODEL, embedding_model=EMBEDDING_MODEL)
+    question = ""
+    result = None
+    error = None
+    status_code = 200
+    if request.method == "POST":
+        question = request.form.get("question", "").strip()
+        if not question or len(question) > 2000:
+            error = "Enter a question between 1 and 2,000 characters."
+            status_code = 400
+        else:
+            try:
+                result = answer_question(question, g.account["role"], defense="guarded")
+            except (RuntimeError, ValueError) as model_error:
+                error = str(model_error)
+                status_code = 502
+    return render_template(
+        "index.html", answer_model=ANSWER_MODEL, embedding_model=EMBEDDING_MODEL,
+        question=question, result=result, error=error,
+    ), status_code
 
 
 @app.route("/login", methods=["GET", "POST"])
