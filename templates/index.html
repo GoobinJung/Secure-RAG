@@ -20,6 +20,30 @@
     <h2 id="answer-heading">Answer</h2>
     <div class="answer-text">{{ result.answer }}</div>
   </section>
+  <section class="sources-section" aria-labelledby="sources-heading">
+    <h2 id="sources-heading">Sources sent to the model</h2>
+    <p class="source-help">These document excerpts were supplied as context. A source in this list may not be cited in the answer.</p>
+    {% if result.citations.status == 'matched' %}
+    <p class="citation-status">Citation check: all cited source IDs were supplied to the model.</p>
+    {% elif result.citations.status == 'unmatched' %}
+    <p class="citation-status citation-warning">Citation check: the answer cites source IDs outside the supplied context.</p>
+    <p class="source-help">Unmatched source IDs: {{ result.citations.unknown_ids | join(', ') }}</p>
+    {% else %}
+    <p class="citation-status">Citation check: no source IDs found in the answer.</p>
+    {% endif %}
+    <p class="source-help">This checks source IDs only. Compare the answer with the excerpts to assess factual support.</p>
+    {% for chunk in result.chunks %}
+    <details class="source-card">
+      <summary><span class="source-id">[{{ chunk.id }}]</span> {{ chunk.title }}</summary>
+      <div class="source-body">
+        <p class="source-path">{{ chunk.source }}</p>
+        <div class="source-text">{{ chunk.text }}</div>
+      </div>
+    </details>
+    {% else %}
+    <p class="source-help">No document excerpts were sent to the answer model.</p>
+    {% endfor %}
+  </section>
   {% endif %}
 </section>
 <aside class="panel workspace-account" aria-labelledby="account-heading">

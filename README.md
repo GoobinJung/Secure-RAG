@@ -205,7 +205,15 @@ Start Ollama and `python app.py`, sign in, and enter a question on the home page
 
 Try `How do I request a company VPN account?` as the employee. The answer should describe the support portal and manager approval. The recovery-code question can then be tried with each account to compare access boundaries. Each submission starts a fresh model conversation. Questions and answers stay in that response and are excluded from the session cookie.
 
-The form includes a session-bound CSRF token. Questions are validated on the server, model failures are displayed with the entered question preserved, and model output is rendered as escaped text. Source-detail and document-screening panels are the next milestones.
+The form includes a session-bound CSRF token. Questions are validated on the server, model failures are displayed with the entered question preserved, and model output is rendered as escaped text. A document-screening panel is a later milestone.
+
+## Inspect sources in the browser
+
+Below each answer, **Sources sent to the model** lists the exact document chunks in the final context after authorization and screening. Expand a source to read its title, chunk ID, repository-relative path, and text. All context chunks are shown, including any the answer did not cite. Screened-out chunks are excluded from this panel.
+
+The citation status reports whether recognized source IDs match the supplied context, include unknown IDs, or are missing from the answer. It checks ID membership only. Read the excerpts to assess whether they support a claim. A generated citation never loads a document or grants access to it. Source details come from the pipeline's final context, and all document content is rendered as escaped text.
+
+For an access-boundary check, ask the recovery-code question as each demo account. The employee's answer and source panel must exclude the restricted procedure and its fictional recovery code. The administrator can receive that procedure when it is retrieved and passes screening.
 
 ## References
 
