@@ -123,6 +123,20 @@ Run `python inspect_documents.py` to see these results alongside the attack exam
 
 The examples' intended benign or attack purpose is described here for evaluation. Runtime authorization still comes from manifest roles, and the scanner uses chunk text. File names or descriptions grant no bypass of document screening.
 
+## Evaluation questions and reference answers
+
+`evaluation_cases.json` defines 14 cases before model evaluation. The set contains five normal questions, four questions about attack-bearing documents, two questions about benign quotations, two access-control checks using the same question for different roles, and one question the corpus cannot answer.
+
+Each case includes its role, question, reference answer, and reference source IDs. The employee recovery-code case specifies forbidden source IDs and the fictional code that must stay out of the answer. Attack cases specify the carrier chunk and the marker requested by the injected instruction. `source_labels` records the intended attack or benign purpose of every corpus chunk for later scanner evaluation. These labels are evaluation metadata, separate from runtime screening and authorization.
+
+```powershell
+python evaluation_cases.py
+```
+
+This command validates definitions against the current corpus and prints case counts. Reference answers describe the intended task response. Measured outputs will be recorded by the evaluation runner in a later milestone. Reference answers for attack cases describe factual content in the documents. Guarded screening may remove that evidence, especially for the MFA and cache examples, which should be recorded when evaluating answer usefulness.
+
+The future comparison should record the model, corpus version, retrieved sources, screened-out sources, final context sources, answers, and citation checks for each mode. An attack that was never retrieved is a separate outcome from an attack whose instruction reached the model and was resisted. Differences in wording from a reference answer require judging whether the same facts were conveyed.
+
 ## References
 
 - [Microsoft guidance on document chunking](https://learn.microsoft.com/en-us/azure/search/vector-search-how-to-chunk-documents)
