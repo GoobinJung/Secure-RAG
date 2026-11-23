@@ -137,6 +137,23 @@ This command validates definitions against the current corpus and prints case co
 
 The future comparison should record the model, corpus version, retrieved sources, screened-out sources, final context sources, answers, and citation checks for each mode. An attack that was never retrieved is a separate outcome from an attack whose instruction reached the model and was resisted. Differences in wording from a reference answer require judging whether the same facts were conveyed.
 
+## Record model evaluation runs
+
+Use the runner to execute a selected case or the complete set:
+
+```powershell
+python evaluate.py --case normal-vpn --defense guarded
+python evaluate.py
+```
+
+The first command records one question in guarded mode. With no arguments, the runner executes all 14 cases in baseline and guarded modes, producing 28 case records. Repeat `--case` to select several cases. Keep Ollama running during evaluation.
+
+Every invocation creates a new JSON Lines file under `results/runs/`. Its first line records model tags and installed-model digests, Python version, generation settings, corpus and case fingerprints, and source-code file hashes. Subsequent lines record each case, mode, actual answer, retrieved chunk IDs, screened-out chunks, final context IDs, citation checks, and end-to-end elapsed time. The final summary records completed cases and errors. Cold model loading is included in elapsed time.
+
+Each completed record is flushed before the next case starts. Model errors are recorded and the runner continues, then exits with a failure status if any case failed. Interrupted runs retain completed records and may lack the final summary. Earlier result files are preserved. Raw run files are ignored by Git while experiments are in progress. Selected verified results can be prepared for the repository in a later milestone.
+
+An `ok` record means the model request completed. Answer quality, attack outcomes, and false-positive rates will be calculated separately. The full reference answer and case expectations are stored alongside each observation for review.
+
 ## References
 
 - [Microsoft guidance on document chunking](https://learn.microsoft.com/en-us/azure/search/vector-search-how-to-chunk-documents)

@@ -6,12 +6,12 @@ from urllib.request import ProxyHandler, Request, build_opener
 OLLAMA_URL = "http://127.0.0.1:11434/api/"
 
 
-def request_ollama(endpoint, payload):
+def request_ollama(endpoint, payload=None):
     request = Request(
         OLLAMA_URL + endpoint,
-        data=json.dumps(payload).encode("utf-8"),
+        data=json.dumps(payload).encode("utf-8") if payload is not None else None,
         headers={"Content-Type": "application/json"},
-        method="POST",
+        method="POST" if payload is not None else "GET",
     )
     # A local model request should go directly to the loopback address.
     opener = build_opener(ProxyHandler({}))
@@ -19,9 +19,11 @@ def request_ollama(endpoint, payload):
         with opener.open(request, timeout=180) as response:
             result = json.load(response)
     except HTTPError as error:
+        error.close()
+        target = payload["model"] if payload is not None else endpoint
         raise RuntimeError(
             f"Ollama returned HTTP {error.code}. Check 'ollama list' for "
-            f"the requested model: {payload['model']}."
+            f"the requested resource: {target}."
         ) from error
     except (URLError, OSError) as error:
         raise RuntimeError(

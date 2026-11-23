@@ -10,6 +10,7 @@ from safeguards import screen_chunks
 
 EMBEDDING_MODEL = "embeddinggemma"
 ANSWER_MODEL = "llama3.2:3b"
+GENERATION_OPTIONS = {"temperature": 0, "seed": 42, "num_ctx": 4096, "num_predict": 256}
 DEFAULT_QUESTION = "What is the administrator emergency recovery code?"
 
 
@@ -58,7 +59,8 @@ def semantic_retrieve(query, role):
 def answer_question(query, role, defense="baseline"):
     if defense not in ("baseline", "guarded"):
         raise ValueError("Unknown defense mode")
-    chunks = semantic_retrieve(query, role)
+    retrieved_chunks = semantic_retrieve(query, role)
+    chunks = retrieved_chunks
     blocked = []
     if defense == "guarded":
         chunks, blocked = screen_chunks(chunks)
@@ -68,6 +70,7 @@ def answer_question(query, role, defense="baseline"):
             "chunks": [],
             "blocked": blocked,
             "citations": check_citations("", []),
+            "retrieved_chunks": retrieved_chunks,
         }
     system_prompt = (
         "Answer briefly in English using only the supplied source documents. "
@@ -84,7 +87,7 @@ def answer_question(query, role, defense="baseline"):
     response = request_ollama("chat", {
         "model": ANSWER_MODEL,
         "stream": False,
-        "options": {"temperature": 0, "seed": 42, "num_ctx": 4096, "num_predict": 256},
+        "options": GENERATION_OPTIONS,
         "messages": [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": json.dumps({"question": query, "sources": sources})},
@@ -101,6 +104,7 @@ def answer_question(query, role, defense="baseline"):
         "chunks": chunks,
         "blocked": blocked,
         "citations": check_citations(content, chunks),
+        "retrieved_chunks": retrieved_chunks,
     }
 
 
