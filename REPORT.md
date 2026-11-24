@@ -33,7 +33,9 @@ After sign-in, the server resolves the role from its account mapping. It filters
 
 The embedding model encodes the question and allowed chunks. The application normalizes the vectors, calculates cosine similarity, and selects up to three results. Baseline mode sends those authorized results with the original source-grounding prompt. Guarded mode first normalizes Unicode and removes chunks matching instruction-override, role-impersonation, or answer-redirection patterns. It also adds a prompt describing sources as untrusted evidence. Removed slots are not refilled. If no chunks remain, the application returns an abstention without calling the answer model.
 
-The browser displays the answer, screening counts and reasons, and expandable final-context excerpts. Citation validation compares recognized IDs with the IDs supplied to the model. This checks membership, not whether a source proves a claim. Questions, source text, and answers are escaped when rendered in HTML.
+The browser uses a dark chat interface with questions and replies shown in sequence. Each reply records its defense mode. Security checks and source excerpts are collapsed until the user expands them, keeping the answer easy to read. Citation validation compares recognized IDs with the IDs supplied to the model. This checks membership, not whether a source proves a claim. Questions, source text, and answers are escaped when rendered in HTML.
+
+The conversation stays in the current page rather than in browser storage or the session cookie. Each question is searched independently, so earlier replies are not passed back to the model. New chat clears the display. Reloading or leaving the page also clears it, and session checks and cross-tab notifications clear a chat when a changed login is detected. Responses from an outdated login context are discarded. This limits accidental carryover of an administrator's displayed answers into another account's chat.
 
 ## Technology choices and alternatives
 
@@ -49,7 +51,7 @@ I used in-memory cosine search rather than adding a vector database or a larger 
 
 ## Development and difficulties
 
-Development began with document segmentation and access metadata. The next stages added keyword permission checks, local semantic retrieval, and generated answers. Later commits added screening, citation validation, attack fixtures, benign quotations, predefined questions, run recording, and metric summaries. The browser application was built after the command-line pipeline and complete evaluation were working. Login, question submission, source inspection, mode comparison, and error recovery were added separately.
+Development began with document segmentation and access metadata. The next stages added keyword permission checks, local semantic retrieval, and generated answers. Later commits added screening, citation validation, attack fixtures, benign quotations, predefined questions, run recording, and metric summaries. The browser application was built after the command-line pipeline and complete evaluation were working. Login, question submission, source inspection, mode comparison, and error recovery were added separately. I then changed the form-based layout to a chat interface with a dark theme and collapsible inspection panels.
 
 The main difficulties for me were prompt injection and normal documents being incorrectly blocked. An indirect injection is difficult because it enters through material the system retrieves as evidence. The attack fixtures tried direct instruction overrides, a claimed system role, a hidden Unicode character inside an instruction, and a paraphrased redirection. The expected attack outputs were harmless marker strings that could be checked in the saved answers.
 
@@ -85,7 +87,7 @@ Mean end-to-end times were 5.855 seconds for Baseline and 4.778 seconds for Guar
 
 The strongest finding is the tradeoff between exposure and usefulness. Guarded reduced target-document exposure, but no marker-based attack-success reduction was observed because both modes already produced zero markers. The small handcrafted set and single run per case limit the conclusion. Guarded also changes the prompt and screening together, so the experiment does not isolate their individual effects.
 
-Later browser checks confirmed the normal VPN answer with an expandable source, the two defense modes, and the recovery-question difference between employee and admin. For the employee in Guarded mode, all three retrieved public chunks were screened out and the application abstained. For the admin, two recovery chunks remained and the answer gave the fictional code. Submitting an old question form after logout displayed the recovery page. These interactive checks are separate from the saved complete evaluation. The latest automated implementation check passed 122 tests with stubbed model responses; it does not measure model accuracy.
+Later browser checks confirmed the normal VPN answer with an expandable source, the two defense modes, and the recovery-question difference between employee and admin. For the employee in Guarded mode, all three retrieved public chunks were screened out and the application abstained. For the admin, two recovery chunks remained and the answer gave the fictional code. Submitting an old question form after logout displayed the recovery page. After the chat redesign, two successive VPN questions and replies remained visible together. These interactive checks are separate from the saved complete evaluation. The latest automated implementation check passed 134 tests with stubbed model responses, including chat session checks and escaped response fragments; it does not measure model accuracy.
 
 ## What I learned
 

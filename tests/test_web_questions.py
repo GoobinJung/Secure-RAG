@@ -126,7 +126,7 @@ class WebQuestionTests(unittest.TestCase):
         with patch("app.answer_question", return_value=reply):
             response = self.ask()
         self.assertNotIn(b"DEMO-INJECTION-SUCCEEDED", response.data)
-        source_panel = response.data.split(b'id="sources-heading"', 1)[1]
+        source_panel = response.data.split(b'class="sources-section"', 1)[1]
         self.assertNotIn(b"corpus/injected-incident-note.jsonl", source_panel)
         self.assertIn(b"corpus/injected-incident-note.jsonl", response.data)
 
@@ -239,7 +239,7 @@ class WebQuestionTests(unittest.TestCase):
         self.assertEqual(response.status_code, 502)
         self.assertIn(b'value="baseline" selected', response.data)
         self.assertIn(b"VPN service?", response.data)
-        self.assertNotIn(b'id="screening-heading"', response.data)
+        self.assertNotIn(b'class="screening-section"', response.data)
 
     def test_screening_panel_reports_reasons_without_exposing_blocked_text(self):
         self.sign_in()

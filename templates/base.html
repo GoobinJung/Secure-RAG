@@ -6,11 +6,11 @@
   <title>{% block title %}Secure RAG{% endblock %}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}">
 </head>
-<body>
+<body class="{% block body_class %}{% endblock %}" data-session-context="{{ csrf_token() if account else '' }}">
   <header class="site-header">
     <a class="brand" href="{{ url_for('index') }}">Secure RAG</a>
     {% if account %}
-    <form method="post" action="{{ url_for('logout') }}">
+    <form data-logout method="post" action="{{ url_for('logout') }}">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <button class="button secondary" type="submit">Sign out</button>
     </form>
@@ -19,6 +19,7 @@
   <main class="page">
     {% block content %}{% endblock %}
   </main>
+  <script src="{{ url_for('static', filename='session.js') }}" defer></script>
   {% block scripts %}{% endblock %}
 </body>
 </html>

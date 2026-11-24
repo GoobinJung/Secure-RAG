@@ -92,7 +92,7 @@ class WebRecoveryTests(unittest.TestCase):
         self.assertIn(b"Open Ollama and retry.", failed.data)
         self.assertIn(b"VPN service?", failed.data)
         self.assertIn(b'value="baseline" selected', failed.data)
-        self.assertNotIn(b'id="answer-heading"', failed.data)
+        self.assertNotIn(b'class="answer-text"', failed.data)
         self.assertEqual(recovered.status_code, 200)
         self.assertIn(reply["answer"].encode(), recovered.data)
         self.assertEqual(answer.call_count, 2)

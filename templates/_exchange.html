@@ -1,0 +1,68 @@
+<article class="chat-exchange" data-mode="{{ defense }}">
+  <div class="user-message">
+    <p class="message-label">You</p>
+    <div class="question-text">{{ question }}</div>
+  </div>
+  <div class="assistant-message">
+    <div class="assistant-heading"><span class="message-label">Secure RAG</span><span class="mode-tag">{{ 'Guarded' if defense == 'guarded' else 'Baseline' }}</span></div>
+    {% if error %}
+    <p class="error" role="alert">{{ error }}</p>
+    {% else %}
+    <div class="answer-text">{{ result.answer }}</div>
+    <details class="answer-details">
+      <summary>Security checks <span>{{ result.blocked | length }} screened out</span></summary>
+      <section class="screening-section" aria-label="Document screening">
+        <h3>Document screening</h3>
+        <p class="screening-summary">Mode used: <strong>{{ 'Guarded' if defense == 'guarded' else 'Baseline' }}</strong></p>
+        <p class="source-help">Retrieved: {{ result.retrieved_chunks | length }} &middot; Sent to model: {{ result.chunks | length }} &middot; Screened out: {{ result.blocked | length }}</p>
+        {% if defense == 'baseline' %}
+        <p class="source-help">Pattern screening was not applied. Authorized search results were sent to the model.</p>
+        {% else %}
+          {% set reasons = {
+            'instruction_override': 'Matches wording that asks the model to ignore earlier instructions.',
+            'role_impersonation': 'Matches text labeled as a system or developer message.',
+            'answer_redirection': 'Matches wording that redirects the model away from answering.'
+          } %}
+          {% for chunk in result.blocked %}
+          <div class="screening-item">
+            <p class="screening-summary"><strong>[{{ chunk.id }}]</strong> &mdash; screened out</p>
+            <p class="source-path">{{ chunk.source }}</p>
+            <p class="source-help"><strong>{{ chunk.reason }}</strong> &mdash; {{ reasons.get(chunk.reason, 'Matched a document screening pattern.') }}</p>
+          </div>
+          {% else %}
+          <p class="source-help">No current screening patterns matched the retrieved chunks.</p>
+          {% endfor %}
+          <p class="source-help">A pattern match may flag benign quotations. Unmatched text can still contain an attack.</p>
+        {% endif %}
+      </section>
+    </details>
+    <details class="answer-details">
+      <summary>Sources <span>{{ result.chunks | length }} excerpts</span></summary>
+      <section class="sources-section" aria-label="Sources sent to the model">
+        <h3>Sources sent to the model</h3>
+        <p class="source-help">These document excerpts were supplied as context. A source in this list may not be cited in the answer.</p>
+        {% if result.citations.status == 'matched' %}
+        <p class="citation-status">Citation check: all cited source IDs were supplied to the model.</p>
+        {% elif result.citations.status == 'unmatched' %}
+        <p class="citation-status citation-warning">Citation check: the answer cites source IDs outside the supplied context.</p>
+        <p class="source-help">Unmatched source IDs: {{ result.citations.unknown_ids | join(', ') }}</p>
+        {% else %}
+        <p class="citation-status">Citation check: no source IDs found in the answer.</p>
+        {% endif %}
+        <p class="source-help">This checks source IDs only. Compare the answer with the excerpts to assess factual support.</p>
+        {% for chunk in result.chunks %}
+        <details class="source-card">
+          <summary><span class="source-id">[{{ chunk.id }}]</span> {{ chunk.title }}</summary>
+          <div class="source-body">
+            <p class="source-path">{{ chunk.source }}</p>
+            <div class="source-text">{{ chunk.text }}</div>
+          </div>
+        </details>
+        {% else %}
+        <p class="source-help">No document excerpts were sent to the answer model.</p>
+        {% endfor %}
+      </section>
+    </details>
+    {% endif %}
+  </div>
+</article>
