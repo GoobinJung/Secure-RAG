@@ -136,7 +136,7 @@ class WebChatTests(unittest.TestCase):
         self.login()
         with patch("app.answer_question", return_value=self.reply):
             html = self.ask().json["html"]
-        self.assertEqual(html.count('<details class="answer-details">'), 2)
+        self.assertEqual(html.count('<details class="answer-details"'), 2)
         self.assertNotIn(" open", html)
         self.assertNotIn(' id="', html)
 

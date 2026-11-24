@@ -6,9 +6,11 @@ from flask import Flask, abort, g, redirect, render_template, request, session, 
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from rag import ANSWER_MODEL, EMBEDDING_MODEL, answer_question
+from web_citations import citation_parts
 
 
 app = Flask(__name__)
+app.jinja_env.filters["citation_parts"] = citation_parts
 app.config.update(
     SECRET_KEY=secrets.token_hex(32),
     SESSION_COOKIE_HTTPONLY=True,

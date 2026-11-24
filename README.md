@@ -41,6 +41,8 @@ The application uses local model endpoints and requires no paid inference API or
 
 Each reply records its defense mode. Expand **Security checks** to see the mode used, retrieved count, final context count, and excluded IDs with pattern reasons. Excluded document text is omitted from that panel. Expand **Sources** to inspect the exact final context chunks and citation check. A generated citation never loads another document or grants access to it.
 
+Answers display supplied source IDs as compact references such as **[1]**. Click one to open the matching excerpt in that reply's Sources panel. Numbers follow the final context order and restart for each reply. Internal chunk IDs remain in source details. An ID absent from the supplied context displays as **[unverified source]** without a link. This is a browser display change; raw model answers, citation checks, and saved evaluation records retain the original IDs.
+
 Guarded is the default. A different selection takes effect when **Send** is submitted. Enter sends a question; Shift+Enter inserts a new line. **Thinking…** is the waiting indicator while retrieval and generation run, not a display of the model's internal reasoning. Account and model information is available in the account menu at the top.
 
 Questions and replies accumulate in the current tab, but every question is retrieved and answered independently. Earlier messages are not sent back to the model. **New chat** clears the displayed conversation. Reloading, leaving the page, logging out, or detecting a changed login also clears it. Chat text is kept in the page only, not in browser storage or the signed session cookie. Session checks and cross-tab notifications help discard replies that arrive after the login changes. Without JavaScript, the form still supports one question and reply per submission.
@@ -136,7 +138,7 @@ New runs use unique files under ignored `results/runs/`. The header records mode
 
 ## Implementation checks and command line tools
 
-The most recent implementation check passed 134 automated tests. These cover segmentation, permissions, vectors, screening, citations, evaluation records, login, CSRF, rendering, mode selection, error recovery, and the chat endpoints. Chat checks include session-context rotation, independent questions, escaped fragments, and rejection of stale forms. Model responses are stubbed for deterministic tests; passing them does not establish Llama's answer quality.
+The most recent implementation check passed 146 Python tests and three JavaScript navigation tests. These cover segmentation, permissions, vectors, screening, citations, evaluation records, login, CSRF, rendering, mode selection, error recovery, and the chat endpoints. Chat checks include session-context rotation, independent questions, escaped fragments, and rejection of stale forms. Numbered-reference tests check context membership, escaping, consistent numbering, and navigation within the correct reply. Model responses are stubbed for deterministic tests; passing them does not establish Llama's answer quality.
 
 ```powershell
 .\.venv\Scripts\python.exe -m unittest discover -s tests -v
@@ -148,6 +150,12 @@ The most recent implementation check passed 134 automated tests. These cover seg
 ```
 
 The ingestion preview prints all fixture chunks, including fictional admin material. CLI roles are trusted local test inputs. Browser roles are resolved from the authenticated account instead.
+
+The optional JavaScript navigation checks use Node.js built-in test tools and DOM stubs, with no npm dependencies. They exercise the click handler rather than a complete browser:
+
+```powershell
+node --test tests/test_citation_navigation.cjs
+```
 
 Live browser checks confirmed a normal VPN answer and source display, the Baseline/Guarded VPN comparison, employee/admin recovery-question behavior in Guarded mode, and rejection of a form submitted after logout. After the UI update, two successive VPN questions and replies were displayed together in the dark chat interface. These checks are separate from the saved complete model evaluation. Live handling of an Ollama outage and cross-tab clearing remain manual checks; automated recovery and chat tests simulate the server-side failures and session changes.
 

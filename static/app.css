@@ -211,3 +211,6 @@ summary:focus-visible, .suggestions button:focus-visible, .chat-thread:focus-vis
 .chat-thread { scrollbar-color: var(--border) var(--canvas); }
 .source-card { background: var(--canvas); }
 .thinking-message { color: var(--muted); }
+.citation-ref { display: inline; padding: 1px 3px; border: 0; border-radius: 4px; color: var(--accent); background: transparent; font: inherit; font-size: 0.8em; white-space: nowrap; cursor: pointer; }
+.citation-ref:hover { background: var(--raised); text-decoration: underline; }
+.citation-ref:focus-visible, .source-card[data-citation-selected] { outline: 2px solid var(--focus); outline-offset: 3px; }

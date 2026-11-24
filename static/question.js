@@ -16,6 +16,25 @@
   let controller = null;
 
   clear.hidden = false;
+  messages.addEventListener("click", (event) => {
+    if (!active || !(event.target instanceof Element)) return;
+    const reference = event.target.closest(".citation-ref");
+    if (!reference) return;
+    const number = Number(reference.dataset.sourceNumber);
+    if (!Number.isInteger(number) || number < 1) return;
+    const exchange = reference.closest(".chat-exchange");
+    const source = exchange?.querySelector(`.source-card[data-source-number="${number}"]`);
+    const panel = exchange?.querySelector("[data-source-panel]");
+    if (!source || !panel) return;
+    exchange.querySelectorAll("[data-citation-selected]").forEach((item) => {
+      item.removeAttribute("data-citation-selected");
+    });
+    panel.open = true;
+    source.open = true;
+    source.setAttribute("data-citation-selected", "");
+    source.focus({preventScroll: true});
+    source.scrollIntoView({block: "nearest", behavior: "auto"});
+  });
   function setBusy(value) {
     busy = value;
     form.setAttribute("aria-busy", String(value));

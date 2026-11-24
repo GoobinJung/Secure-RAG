@@ -163,7 +163,7 @@ class WebQuestionTests(unittest.TestCase):
         with patch("app.answer_question", return_value=reply):
             response = self.ask()
         self.assertIn(b"No document excerpts were sent to the answer model.", response.data)
-        self.assertNotIn(b'<details class="source-card">', response.data)
+        self.assertNotIn(b'<details class="source-card"', response.data)
 
     def test_source_metadata_and_content_are_escaped(self):
         self.sign_in()

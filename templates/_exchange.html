@@ -8,7 +8,7 @@
     {% if error %}
     <p class="error" role="alert">{{ error }}</p>
     {% else %}
-    <div class="answer-text">{{ result.answer }}</div>
+    <div class="answer-text">{% for part in result.answer | citation_parts(result.chunks) %}{% if part.number is defined %}<button type="button" class="citation-ref" data-source-number="{{ part.number }}" aria-label="Show source {{ part.number }}">[{{ part.number }}]</button>{% else %}{{ part.text }}{% endif %}{% endfor %}</div>
     <details class="answer-details">
       <summary>Security checks <span>{{ result.blocked | length }} screened out</span></summary>
       <section class="screening-section" aria-label="Document screening">
@@ -36,7 +36,7 @@
         {% endif %}
       </section>
     </details>
-    <details class="answer-details">
+    <details class="answer-details" data-source-panel>
       <summary>Sources <span>{{ result.chunks | length }} excerpts</span></summary>
       <section class="sources-section" aria-label="Sources sent to the model">
         <h3>Sources sent to the model</h3>
@@ -51,9 +51,10 @@
         {% endif %}
         <p class="source-help">This checks source IDs only. Compare the answer with the excerpts to assess factual support.</p>
         {% for chunk in result.chunks %}
-        <details class="source-card">
-          <summary><span class="source-id">[{{ chunk.id }}]</span> {{ chunk.title }}</summary>
+        <details class="source-card" data-source-number="{{ loop.index }}" tabindex="-1">
+          <summary><span class="source-id">[{{ loop.index }}]</span> {{ chunk.title }}</summary>
           <div class="source-body">
+            <p class="source-path">Source ID: [{{ chunk.id }}]</p>
             <p class="source-path">{{ chunk.source }}</p>
             <div class="source-text">{{ chunk.text }}</div>
           </div>
