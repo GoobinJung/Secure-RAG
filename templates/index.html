@@ -10,6 +10,12 @@
     <label for="question">Question</label>
     <textarea id="question" name="question" rows="5" maxlength="2000" required
       placeholder="How do I request a company VPN account?">{{ question }}</textarea>
+    <label for="defense">Defense mode</label>
+    <select id="defense" name="defense" aria-describedby="defense-help">
+      <option value="guarded"{% if defense == 'guarded' %} selected{% endif %}>Guarded</option>
+      <option value="baseline"{% if defense == 'baseline' %} selected{% endif %}>Baseline</option>
+    </select>
+    <p id="defense-help" class="source-help">Guarded adds document pattern screening and an untrusted-source prompt. Baseline skips these checks. Both modes enforce your account's document permissions.</p>
     <div class="question-actions">
       <button id="ask-button" class="button primary" type="submit">Ask</button>
       <span id="question-status" role="status" aria-live="polite"></span>
@@ -19,6 +25,30 @@
   <section class="answer-section" aria-labelledby="answer-heading">
     <h2 id="answer-heading">Answer</h2>
     <div class="answer-text">{{ result.answer }}</div>
+  </section>
+  <section class="screening-section" aria-labelledby="screening-heading">
+    <h2 id="screening-heading">Document screening</h2>
+    <p class="screening-summary">Mode used: <strong>{{ 'Guarded' if defense == 'guarded' else 'Baseline' }}</strong></p>
+    <p class="source-help">Retrieved: {{ result.retrieved_chunks | length }} &middot; Sent to model: {{ result.chunks | length }} &middot; Screened out: {{ result.blocked | length }}</p>
+    {% if defense == 'baseline' %}
+    <p class="source-help">Pattern screening was not applied. Authorized search results were sent to the model.</p>
+    {% else %}
+      {% set reasons = {
+        'instruction_override': 'Matches wording that asks the model to ignore earlier instructions.',
+        'role_impersonation': 'Matches text labeled as a system or developer message.',
+        'answer_redirection': 'Matches wording that redirects the model away from answering.'
+      } %}
+      {% for chunk in result.blocked %}
+      <div class="screening-item">
+        <p class="screening-summary"><strong>[{{ chunk.id }}]</strong> &mdash; screened out</p>
+        <p class="source-path">{{ chunk.source }}</p>
+        <p class="source-help"><strong>{{ chunk.reason }}</strong> &mdash; {{ reasons.get(chunk.reason, 'Matched a document screening pattern.') }}</p>
+      </div>
+      {% else %}
+      <p class="source-help">No current screening patterns matched the retrieved chunks.</p>
+      {% endfor %}
+      <p class="source-help">A pattern match may flag benign quotations. Unmatched text can still contain an attack.</p>
+    {% endif %}
   </section>
   <section class="sources-section" aria-labelledby="sources-heading">
     <h2 id="sources-heading">Sources sent to the model</h2>

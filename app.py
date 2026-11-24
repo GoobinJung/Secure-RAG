@@ -67,23 +67,29 @@ def index():
     if g.account is None:
         return redirect(url_for("login"))
     question = ""
+    defense = "guarded"
     result = None
     error = None
     status_code = 200
     if request.method == "POST":
         question = request.form.get("question", "").strip()
-        if not question or len(question) > 2000:
+        defense = request.form.get("defense", "guarded")
+        if defense not in ("baseline", "guarded"):
+            error = "Choose Baseline or Guarded mode."
+            defense = "guarded"
+            status_code = 400
+        elif not question or len(question) > 2000:
             error = "Enter a question between 1 and 2,000 characters."
             status_code = 400
         else:
             try:
-                result = answer_question(question, g.account["role"], defense="guarded")
+                result = answer_question(question, g.account["role"], defense=defense)
             except (RuntimeError, ValueError) as model_error:
                 error = str(model_error)
                 status_code = 502
     return render_template(
         "index.html", answer_model=ANSWER_MODEL, embedding_model=EMBEDDING_MODEL,
-        question=question, result=result, error=error,
+        question=question, defense=defense, result=result, error=error,
     ), status_code
 
 

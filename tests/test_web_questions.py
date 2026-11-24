@@ -33,10 +33,10 @@ class WebQuestionTests(unittest.TestCase):
         data.update(extra)
         return self.client.post("/", data=data)
 
-    def test_employee_question_uses_server_role_and_guarded_mode(self):
+    def test_employee_question_uses_server_role_and_defaults_to_guarded(self):
         self.sign_in()
         with patch("app.answer_question", return_value=self.reply) as answer:
-            response = self.ask(role="admin", defense="baseline")
+            response = self.ask(role="admin")
         answer.assert_called_once_with("How do I request a VPN account?", "employee", defense="guarded")
         self.assertEqual(response.status_code, 200)
         self.assertIn(b"Submit a request.", response.data)
@@ -126,7 +126,9 @@ class WebQuestionTests(unittest.TestCase):
         with patch("app.answer_question", return_value=reply):
             response = self.ask()
         self.assertNotIn(b"DEMO-INJECTION-SUCCEEDED", response.data)
-        self.assertNotIn(b"corpus/injected-incident-note.jsonl", response.data)
+        source_panel = response.data.split(b'id="sources-heading"', 1)[1]
+        self.assertNotIn(b"corpus/injected-incident-note.jsonl", source_panel)
+        self.assertIn(b"corpus/injected-incident-note.jsonl", response.data)
 
     def test_uncited_context_is_still_available_for_inspection(self):
         self.sign_in()
@@ -189,13 +191,111 @@ class WebQuestionTests(unittest.TestCase):
             return {"done": True, "message": {"content": answer}}
 
         for username in ("employee", "admin"):
-            with self.subTest(role=username):
-                self.sign_in(username, f"{username}-demo")
-                with patch("rag.request_ollama", side_effect=model_reply):
-                    response = self.ask("What is the administrator emergency recovery code?")
-                self.assertEqual(response.status_code, 200)
-                for restricted in (b"DEMO-RECOVERY-47", b"corpus/recovery-procedure.md"):
-                    if username == "employee":
-                        self.assertNotIn(restricted, response.data)
-                    else:
-                        self.assertIn(restricted, response.data)
+            for defense in ("baseline", "guarded"):
+                with self.subTest(role=username, defense=defense):
+                    self.sign_in(username, f"{username}-demo")
+                    with patch("rag.request_ollama", side_effect=model_reply):
+                        response = self.ask("What is the administrator emergency recovery code?", defense=defense)
+                    self.assertEqual(response.status_code, 200)
+                    for restricted in (b"DEMO-RECOVERY-47", b"corpus/recovery-procedure.md"):
+                        if username == "employee":
+                            self.assertNotIn(restricted, response.data)
+                        else:
+                            self.assertIn(restricted, response.data)
+
+    def test_baseline_selection_preserves_employee_role(self):
+        self.sign_in()
+        with patch("app.answer_question", return_value=self.reply) as answer:
+            response = self.ask(defense="baseline", role="admin")
+        answer.assert_called_once_with("How do I request a VPN account?", "employee", defense="baseline")
+        self.assertIn(b'value="baseline" selected', response.data)
+        self.assertIn(b"Mode used: <strong>Baseline</strong>", response.data)
+        self.assertIn(b"Pattern screening was not applied.", response.data)
+        self.assertNotIn(b"No current screening patterns matched", response.data)
+
+    def test_explicit_guarded_selection_is_used(self):
+        self.sign_in()
+        with patch("app.answer_question", return_value=self.reply) as answer:
+            response = self.ask(defense="guarded")
+        self.assertEqual(answer.call_args.kwargs["defense"], "guarded")
+        self.assertIn(b'value="guarded" selected', response.data)
+        self.assertIn(b"No current screening patterns matched", response.data)
+        self.assertIn(b"Unmatched text can still contain an attack.", response.data)
+
+    def test_invalid_modes_are_rejected_before_model_call(self):
+        self.sign_in()
+        for mode in ("", "disabled", "GUARDED", "<script>test</script>"):
+            with self.subTest(mode=mode), patch("app.answer_question") as answer:
+                response = self.ask(defense=mode)
+                self.assertEqual(response.status_code, 400)
+                self.assertIn(b"Choose Baseline or Guarded mode.", response.data)
+                self.assertNotIn(b"<script>test</script>", response.data)
+                answer.assert_not_called()
+
+    def test_mode_and_question_survive_model_failure(self):
+        self.sign_in()
+        with patch("app.answer_question", side_effect=RuntimeError("Ollama unavailable.")):
+            response = self.ask("VPN service?", defense="baseline")
+        self.assertEqual(response.status_code, 502)
+        self.assertIn(b'value="baseline" selected', response.data)
+        self.assertIn(b"VPN service?", response.data)
+        self.assertNotIn(b'id="screening-heading"', response.data)
+
+    def test_screening_panel_reports_reasons_without_exposing_blocked_text(self):
+        self.sign_in()
+        for reason, description in (
+            ("instruction_override", b"ignore earlier instructions"),
+            ("role_impersonation", b"system or developer message"),
+            ("answer_redirection", b"away from answering"),
+        ):
+            with self.subTest(reason=reason):
+                blocked = self.chunks["injected-incident-note:1"]
+                reply = dict(self.reply, retrieved_chunks=self.reply["chunks"] + [blocked], blocked=[{
+                    "id": blocked["id"], "source": blocked["source"], "reason": reason,
+                }])
+                with patch("app.answer_question", return_value=reply):
+                    response = self.ask(defense="guarded")
+                self.assertIn(reason.encode(), response.data)
+                self.assertIn(description, response.data)
+                self.assertIn(b"Retrieved: 2 &middot; Sent to model: 1 &middot; Screened out: 1", response.data)
+                self.assertNotIn(b"DEMO-INJECTION-SUCCEEDED", response.data)
+
+    def test_screening_metadata_is_escaped(self):
+        self.sign_in()
+        blocked = {"id": "<script>id</script>", "source": "<img src=x>",
+                   "reason": "<script>reason</script>"}
+        with patch("app.answer_question", return_value=dict(self.reply, blocked=[blocked])):
+            response = self.ask()
+        self.assertNotIn(b"<script>id", response.data)
+        self.assertNotIn(b"<img src=x>", response.data)
+        self.assertIn(b"&lt;script&gt;reason&lt;/script&gt;", response.data)
+
+    def test_mode_change_drives_actual_rag_screening_with_stubbed_model(self):
+        self.sign_in()
+        injected = self.chunks["injected-incident-note:1"]["text"]
+        clean = self.chunks["incident-notes:1"]["text"]
+        contexts = {}
+
+        def model_reply(endpoint, payload):
+            if endpoint == "embed":
+                vectors = [[1.0, 0.0]]
+                for text in payload["input"][1:]:
+                    vectors.append([1.0, 0.0] if clean in text else
+                                   [0.9, 0.1] if injected in text else [0.0, 1.0])
+                return {"embeddings": vectors}
+            sources = json.loads(payload["messages"][1]["content"])["sources"]
+            contexts[mode] = [source["id"] for source in sources]
+            return {"done": True, "message": {"content": "Restarted the gateway. [incident-notes:1]"}}
+
+        for mode in ("baseline", "guarded"):
+            with patch("rag.request_ollama", side_effect=model_reply):
+                response = self.ask("What resolved the VPN service interruption?", defense=mode)
+            self.assertEqual(response.status_code, 200)
+            if mode == "guarded":
+                self.assertIn(b"instruction_override", response.data)
+                self.assertNotIn(b"DEMO-INJECTION-SUCCEEDED", response.data)
+            else:
+                self.assertIn(b"DEMO-INJECTION-SUCCEEDED", response.data)
+        self.assertIn("injected-incident-note:1", contexts["baseline"])
+        self.assertNotIn("injected-incident-note:1", contexts["guarded"])
+        self.assertIn("incident-notes:1", contexts["guarded"])

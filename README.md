@@ -201,11 +201,11 @@ After login, the page displays the server-resolved username, role, and configure
 
 ## Ask questions in the browser
 
-Start Ollama and `python app.py`, sign in, and enter a question on the home page. Questions can contain up to 2,000 characters. The browser displays a pending status while the request runs, followed by the answer. The initial web question workflow uses guarded mode. The server takes the role from the authenticated account mapping, and ignores submitted role and defense fields.
+Start Ollama and `python app.py`, sign in, and enter a question on the home page. Questions can contain up to 2,000 characters. The browser displays a pending status while the request runs, followed by the answer. Choose Guarded (the default) or Baseline using the Defense mode selector. The server validates that selection and takes the role from the authenticated account mapping. Submitted role fields cannot change the account's permissions.
 
 Try `How do I request a company VPN account?` as the employee. The answer should describe the support portal and manager approval. The recovery-code question can then be tried with each account to compare access boundaries. Each submission starts a fresh model conversation. Questions and answers stay in that response and are excluded from the session cookie.
 
-The form includes a session-bound CSRF token. Questions are validated on the server, model failures are displayed with the entered question preserved, and model output is rendered as escaped text. A document-screening panel is a later milestone.
+The form includes a session-bound CSRF token. Questions and defense modes are validated on the server, model failures are displayed with the entered question and mode preserved, and model output is rendered as escaped text.
 
 ## Inspect sources in the browser
 
@@ -214,6 +214,14 @@ Below each answer, **Sources sent to the model** lists the exact document chunks
 The citation status reports whether recognized source IDs match the supplied context, include unknown IDs, or are missing from the answer. It checks ID membership only. Read the excerpts to assess whether they support a claim. A generated citation never loads a document or grants access to it. Source details come from the pipeline's final context, and all document content is rendered as escaped text.
 
 For an access-boundary check, ask the recovery-code question as each demo account. The employee's answer and source panel must exclude the restricted procedure and its fictional recovery code. The administrator can receive that procedure when it is retrieved and passes screening.
+
+## Compare document screening in the browser
+
+Ask `What resolved the VPN service interruption?` as the employee, first in Baseline and then in Guarded mode. Each submission is an independent model request. The **Document screening** panel records the mode used, number of retrieved chunks, final model-context count, and screened-out count. In Guarded mode it lists each excluded chunk's ID, repository-relative path, pattern reason, and a short explanation. Blocked document text is omitted. These are already authorized search results; the panel does not enumerate documents forbidden to the signed-in account.
+
+Baseline uses the original grounding prompt and skips pattern screening. Guarded screens the same retrieval pipeline and adds the untrusted-source prompt. Both modes enforce account permissions before retrieval and embedding. The comparison changes screening and the prompt together. The mode selector never disables authorization.
+
+For the supplied VPN fixture, Guarded should exclude `injected-incident-note:1` with reason `instruction_override`, while the clean incident note remains available. Baseline may still answer correctly even with the injected text in its context. An excluded chunk means a pattern matched; it does not establish that the model would have followed the instruction. Benign quotations can be excluded, and paraphrased attacks can evade the rules. If nothing matches, the panel says no current patterns matched rather than claiming the documents are safe. A changed dropdown takes effect only when Ask is submitted again.
 
 ## References
 
