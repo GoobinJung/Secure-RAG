@@ -223,6 +223,28 @@ Baseline uses the original grounding prompt and skips pattern screening. Guarded
 
 For the supplied VPN fixture, Guarded should exclude `injected-incident-note:1` with reason `instruction_override`, while the clean incident note remains available. Baseline may still answer correctly even with the injected text in its context. An excluded chunk means a pattern matched; it does not establish that the model would have followed the instruction. Benign quotations can be excluded, and paraphrased attacks can evade the rules. If nothing matches, the panel says no current patterns matched rather than claiming the documents are safe. A changed dropdown takes effect only when Ask is submitted again.
 
+## Recover from web errors
+
+If a form expires after a server restart, session expiry, or another login, the app returns HTTP 400 with a **Return to the app** link. Reload the form and sign in again if prompted. Requests exceeding the 64 KiB body limit return HTTP 413 with the same recovery link. Ordinary question-length and defense-mode validation errors remain on the question form.
+
+If Ollama is unavailable or model generation fails, the question page returns HTTP 502, displays the error, and preserves the question and selected mode. Start Ollama or resolve the displayed problem, then submit again. No answer or source panel is shown for that failed request. Questions, document excerpts, and generated answers are not stored in the signed session.
+
+## Final browser checks
+
+These checks complement the automated Flask tests. The tests use a stubbed model boundary; they do not measure Llama answer quality or replace a live Ollama check. The committed [evaluation records](results/README.md) contain the measured model outputs.
+
+| Check | Action | Expected behavior |
+| --- | --- | --- |
+| Employee permissions | Ask the recovery-code question as employee in each mode | Neither the restricted procedure nor its code appears in the answer or source details. |
+| Administrator context | Sign out, sign in as admin, and ask the same question in Guarded mode | The recovery procedure can appear in context; inspect whether the generated answer uses it correctly. |
+| Injection comparison | Ask the VPN interruption question in each mode | Baseline retains the injected note if retrieved. Guarded reports the pattern and excludes it from final context. Both answers can still be correct. |
+| Unsupported question | Ask for the company's exact employee headcount | The model should acknowledge insufficient evidence. Inspect the actual answer. |
+| Model unavailable | Stop Ollama, submit a normal question, then restart Ollama and retry | The failed request shows an error and retains the question and mode; the next request can succeed. |
+| Expired form | Open the sign-in page in two tabs, sign in in the first, then submit the old form in the second | The old form is rejected with a recovery link. |
+| Logout | Sign out, then reload the home page | Sign-in is required again. |
+
+Expected behaviors are a checklist, not a record that every manual check has passed. Record any observed model abstention or incorrect answer rather than replacing it with the expected text.
+
 ## References
 
 - [Microsoft guidance on document chunking](https://learn.microsoft.com/en-us/azure/search/vector-search-how-to-chunk-documents)

@@ -62,6 +62,22 @@ def response_headers(response):
     return response
 
 
+@app.errorhandler(400)
+def invalid_request(error):
+    return render_template(
+        "error.html", heading="Please reload the form",
+        message="The form expired or the request was invalid. Return to the app and try again. You may need to sign in again.",
+    ), 400
+
+
+@app.errorhandler(413)
+def request_too_large(error):
+    return render_template(
+        "error.html", heading="Request too large",
+        message="This request exceeds the size limit. Return to the app and enter a question of up to 2,000 characters.",
+    ), 413
+
+
 @app.route("/", methods=["GET", "POST"])
 def index():
     if g.account is None:
